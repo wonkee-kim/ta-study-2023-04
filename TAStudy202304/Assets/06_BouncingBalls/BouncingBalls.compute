@@ -1,0 +1,52 @@
+#pragma kernel UpdateBalls
+
+#include "./Ball.hlsl"
+
+RWStructuredBuffer<Ball> _Balls;
+int _InstanceCount;
+float _DeltaTime;
+float3 _BoundsCenter;
+float3 _BoundsMin;
+float3 _BoundsMax;
+float _Gravity;
+
+[numthreads(128,1,1)]
+void UpdateBalls (uint3 id : SV_DispatchThreadID)
+{
+    if(id.x >= _InstanceCount)
+        return;
+
+    Ball b = _Balls[id.x];
+    b.vel.y += _Gravity * _DeltaTime;
+    b.pos += b.vel * _DeltaTime;
+
+    if(b.pos.x < _BoundsMin.x + b.r)
+    {
+        b.pos.x = _BoundsMin.x + b.r;
+        b.vel.x *= -1;
+    }
+    else if(b.pos.x > _BoundsMax.x - b.r)
+    {
+        b.pos.x = _BoundsMax.x - b.r;
+        b.vel.x *= -1;
+    }
+
+    if(b.pos.z < _BoundsMin.z + b.r)
+    {
+        b.pos.z = _BoundsMin.z + b.r;
+        b.vel.z *= -1;
+    }
+    else if(b.pos.z > _BoundsMax.z - b.r)
+    {
+        b.pos.z = _BoundsMax.z - b.r;
+        b.vel.z *= -1;
+    }
+
+    if(b.pos.y < _BoundsMin.y - _BoundsCenter.y + b.r)
+    {
+        b.pos.y = _BoundsMin.y - _BoundsCenter.y + b.r;
+        b.vel.y *= -1;
+    }
+
+    _Balls[id.x] = b;
+}
