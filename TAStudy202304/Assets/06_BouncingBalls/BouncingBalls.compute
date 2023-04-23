@@ -3,7 +3,7 @@
 #include "./Ball.hlsl"
 
 RWStructuredBuffer<Ball> _Balls;
-int _InstanceCount;
+uint _InstanceCount;
 float _DeltaTime;
 float3 _BoundsCenter;
 float3 _BoundsMin;

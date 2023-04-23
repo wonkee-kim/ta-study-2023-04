@@ -24,6 +24,12 @@ public class ComputeShaderExample2 : MonoBehaviour
         _buffer.SetData(_data);
     }
 
+    private void OnDestroy()
+    {
+        if (_buffer != null)
+            _buffer.Release();
+    }
+
     private void Update()
     {
         _computeShader.SetFloat("_Time", Time.time);

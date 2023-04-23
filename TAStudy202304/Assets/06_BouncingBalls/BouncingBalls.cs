@@ -64,6 +64,10 @@ public class BouncingBalls : MonoBehaviour
 
     private void InitizliedBuffer()
     {
+        if (_ballsBuffer != null)
+        {
+            _ballsBuffer.Release();
+        }
         _ballsBuffer = new ComputeBuffer(_instanceCount, Marshal.SizeOf(typeof(Ball)));
         Ball[] balls = new Ball[_instanceCount];
         for (int i = 0; i < _instanceCount; i++)
