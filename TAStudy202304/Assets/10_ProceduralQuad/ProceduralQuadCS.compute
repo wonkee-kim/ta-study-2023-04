@@ -1,0 +1,66 @@
+#pragma kernel VertexBufferUpdate
+#pragma kernel IndexBufferUpdate
+
+float _QuadSize;
+int _QuadCount;
+
+RWByteAddressBuffer _Vertices;
+RWByteAddressBuffer _Indices;
+
+[numthreads(64, 1, 1)]
+void VertexBufferUpdate(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= _QuadCount) return;
+
+    float3 v0 = float3(-0.5, -0.5, 0) * _QuadSize;
+    float3 v1 = float3(0.5, -0.5, 0) * _QuadSize;
+    float3 v2 = float3(-0.5, 0.5, 0) * _QuadSize;
+    float3 v3 = float3(0.5, 0.5, 0) * _QuadSize;
+
+    float2 uv0 = float2(0, 0);
+    float2 uv1 = float2(1, 0);
+    float2 uv2 = float2(0, 1);
+    float2 uv3 = float2(1, 1);
+
+    float4 tangent = float4(1, 0, 0, -1);
+    float3 norm = float3(0, 0, -1);
+
+    uint quadId = id.x;
+    uint step = 3 + 3 + 4 + 2; // position(3) + normal(3) + uv(2)
+
+    _Vertices.Store3(quadId + (step * 0) * 4, asuint(v0));
+    _Vertices.Store3(quadId + (step * 0 + 3) * 4, asuint(norm));
+    _Vertices.Store4(quadId + (step * 0 + 6) * 4, asuint(tangent));
+    _Vertices.Store2(quadId + (step * 0 + 10) * 4, asuint(uv0));
+
+    _Vertices.Store3(quadId + (step * 1) * 4, asuint(v1));
+    _Vertices.Store3(quadId + (step * 1 + 3) * 4, asuint(norm));
+    _Vertices.Store4(quadId + (step * 1 + 6) * 4, asuint(tangent));
+    _Vertices.Store2(quadId + (step * 1 + 10) * 4, asuint(uv1));
+
+    _Vertices.Store3(quadId + (step * 2) * 4, asuint(v2));
+    _Vertices.Store3(quadId + (step * 2 + 3) * 4, asuint(norm));
+    _Vertices.Store4(quadId + (step * 2 + 6) * 4, asuint(tangent));
+    _Vertices.Store2(quadId + (step * 2 + 10) * 4, asuint(uv2));
+
+    _Vertices.Store3(quadId + (step * 3) * 4, asuint(v3));
+    _Vertices.Store3(quadId + (step * 3 + 3) * 4, asuint(norm));
+    _Vertices.Store4(quadId + (step * 3 + 6) * 4, asuint(tangent));
+    _Vertices.Store2(quadId + (step * 3 + 10) * 4, asuint(uv3));
+}
+
+[numthreads(64, 1, 1)]
+void IndexBufferUpdate(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= _QuadCount) return;
+
+    // 2 3
+    // 0 1
+    _Indices.Store(id.x + 0 * 4, 0);
+    _Indices.Store(id.x + 1 * 4, 2);
+    _Indices.Store(id.x + 2 * 4, 1);
+
+    _Indices.Store(id.x + 3 * 4, 2);
+    _Indices.Store(id.x + 4 * 4, 3);
+    _Indices.Store(id.x + 5 * 4, 1);
+}

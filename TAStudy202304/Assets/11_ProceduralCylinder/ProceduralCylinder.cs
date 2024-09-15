@@ -49,8 +49,6 @@ public class ProceduralCylinder : MonoBehaviour
 
     private void OnDestroy()
     {
-        // _vertexBuffer?.Release();
-        // _indexBuffer?.Release();
         _vertexBuffer?.Dispose();
         _vertexBuffer = null;
         _indexBuffer?.Dispose();
@@ -66,8 +64,7 @@ public class ProceduralCylinder : MonoBehaviour
     {
         _mesh = new Mesh();
 
-        // We want GraphicsBuffer access as Raw (ByteAddress) buffers.
-        // Mark the vertex buffer as needing "Raw"
+        // Mark the vertex buffer as Raw (ByteAddress) buffers to access as byte array.
         _mesh.indexBufferTarget |= GraphicsBuffer.Target.Raw;
         _mesh.vertexBufferTarget |= GraphicsBuffer.Target.Raw;
 
@@ -82,10 +79,8 @@ public class ProceduralCylinder : MonoBehaviour
         _quadCount = heightResolution * radialResolution;
         _vertexCount = (heightResolution + 1) * radialResolution;
         int triangleCount = heightResolution * radialResolution * 2;
-        int indexCount = triangleCount * 3;
-
-        // Vertex attribute descriptor
-        // https://docs.unity3d.com/ScriptReference/Rendering.VertexAttributeDescriptor.html
+        // int indexCount = triangleCount * 3;
+        int indexCount = _vertexCount;
 
         // Vertex position: float32 x 3
         var vp = new VertexAttributeDescriptor
@@ -96,11 +91,12 @@ public class ProceduralCylinder : MonoBehaviour
             (VertexAttribute.Normal, VertexAttributeFormat.Float32, 3);
 
         // Vertex/index buffer formats
-        _mesh.SetVertexBufferParams(_vertexCount, vp, vn);
+        // _mesh.SetVertexBufferParams(_vertexCount, vp, vn);
+        _mesh.SetVertexBufferParams(_vertexCount, vp);
         _mesh.SetIndexBufferParams(indexCount, IndexFormat.UInt32);
 
         // Submesh initialization
-        _mesh.SetSubMesh(0, new SubMeshDescriptor(0, _vertexCount), MeshUpdateFlags.DontRecalculateBounds);
+        _mesh.SetSubMesh(0, new SubMeshDescriptor(0, indexCount), MeshUpdateFlags.DontRecalculateBounds);
 
         // GraphicsBuffer references
         _vertexBuffer = _mesh.GetVertexBuffer(0);
@@ -119,8 +115,8 @@ public class ProceduralCylinder : MonoBehaviour
         _compute.SetBuffer(_kernelVertexBufferUpdate, PROP_VERTICES, _vertexBuffer);
         DispatchThreads(_compute, _kernelVertexBufferUpdate, _vertexCount);
 
-        // _compute.SetBuffer(_kernelIndexBufferUpdate, PROP_INDICES, _indexBuffer);
-        // DispatchThreads(_compute, _kernelIndexBufferUpdate, _quadCount); // Quad per thread
+        _compute.SetBuffer(_kernelIndexBufferUpdate, PROP_INDICES, _indexBuffer);
+        DispatchThreads(_compute, _kernelIndexBufferUpdate, _quadCount); // Quad per thread
 
         _mesh.bounds = new Bounds(Vector3.zero, Vector3.one * (1 + radius * 2));
 

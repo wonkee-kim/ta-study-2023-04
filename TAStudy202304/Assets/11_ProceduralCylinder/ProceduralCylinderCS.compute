@@ -19,10 +19,12 @@ void VertexBufferUpdate(uint3 id : SV_DispatchThreadID)
 {
     if (id.x >= _VertexCount) return;
 
-    float angle = (id.x / _RadialResolution) * TWO_PI;
+    int vid = id.x;
+
+    float angle = (vid / _RadialResolution) * TWO_PI;
     float x = cos(angle) * _Radius;
     float z = sin(angle) * _Radius;
-    float y = _Height * (id.x / _HeightResolution);
+    float y = _Height * (vid / _HeightResolution);
 
     float3 pos = float3(x, y, z);
     float3 norm = normalize(float3(x, 0, z));
@@ -31,11 +33,12 @@ void VertexBufferUpdate(uint3 id : SV_DispatchThreadID)
     // uint addr_n = id.x * 6 + 3;
     // uint addr_p = id.x * 6 * 4;
     // uint addr_n = id.x * 6 + 3 * 4;
-    uint addr_p = id.x * 4;
-    uint addr_n = id.x + 3 * 4;
+    uint addr_p = vid * 4;
+    // uint addr_n = vid + 3 * 4;
 
     _Vertices.Store3(addr_p, asuint(pos));
-    _Vertices.Store3(addr_n, asuint(norm));
+    // _Vertices.Store3(addr_n, asuint(norm));
+
 }
 
 [numthreads(64, 1, 1)]
@@ -43,15 +46,18 @@ void IndexBufferUpdate(uint3 id : SV_DispatchThreadID)
 {
     if (id.x >= _QuadCount) return;
 
+    _Indices.Store(id.x * 4, uint(id.x));
+
     // Calculate quad per thread
     // 6 7 8 9 10 11
     // 0 1 2 3  4  5
-    uint a = id.x;
-    uint b = (id.x + 1) % _HeightResolution;
-    uint c = id.x + _HeightResolution;
-    uint d = (id.x + _HeightResolution + 1) % _HeightResolution;
+    // uint a = id.x;
+    // uint b = (id.x + 1) % _HeightResolution;
+    // uint c = id.x + _HeightResolution;
+    // uint d = (id.x + _HeightResolution + 1) % _HeightResolution;
 
-    // Clockwise winding orde
-    _Indices.Store3(id.x * 6 * 4, uint3(a, c, b));
-    _Indices.Store3(id.x * 6 + 3 * 4, uint3(c, d, b));
+    // // Clockwise winding orde
+    // _Indices.Store3(id.x * 6 * 4, uint3(a, c, b));
+    // _Indices.Store3(id.x * 6 + 3 * 4, uint3(c, d, b));
+
 }
